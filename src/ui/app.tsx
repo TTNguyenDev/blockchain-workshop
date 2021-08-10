@@ -56,8 +56,6 @@ export function App() {
     const [tokenName, setTokenName] = useState<string | undefined>();
     const [tokenSymbol, setTokenSymbol] = useState<string | undefined>();
     const [totalSupplyToken, setTotalSupplyToken] = useState<string | undefined>();
-    const [addressInput, setAddressInput] = useState<string | undefined>();
-    const [balanceOfAddr, setBalanceOfAddr] = useState<string | undefined>();
 
     useEffect(() => {
         if (accounts?.[0]) {
@@ -197,11 +195,12 @@ export function App() {
             </button>
             &nbsp;or&nbsp;
             <input
-            placeholder="Existing contract id"
-            onChange={e => setExistingContractIdInputValue(e.target.value)}
+                placeholder="Existing contract id"
+                onChange={e => setExistingContractIdInputValue(e.target.value)}
             />
-            
-            <button type="button" className="fill"
+            <button
+                type="button"
+                className="fill"
                 disabled={!existingContractIdInputValue || !l2Balance}
                 onClick={() => setExistingContractAddress(existingContractIdInputValue)}
             >
@@ -215,13 +214,23 @@ export function App() {
             {tokenName ? <>&nbsp;Token Name: {tokenName}</> : null}
             <br />
             <br />
-            <button type="button" className="fill" onClick={getTokenSymbolValue} disabled={!contract}>
+            <button
+                type="button"
+                className="fill"
+                onClick={getTokenSymbolValue}
+                disabled={!contract}
+            >
                 Get token symbol
             </button>
             {tokenSymbol ? <>&nbsp;Token Symbol: {tokenSymbol}</> : null}
             <br />
             <br />
-            <button type="button" className="fill" onClick={getTotalSupplyToken} disabled={!contract}>
+            <button
+                type="button"
+                className="fill"
+                onClick={getTotalSupplyToken}
+                disabled={!contract}
+            >
                 Get total supply
             </button>
             {totalSupplyToken ? (
@@ -239,7 +248,12 @@ export function App() {
                 placeholder="Amount"
                 onChange={e => setAmountInputValue(Number(e.target.value))}
             />{' '}
-            <button type="button" className="fill" onClick={setTransferTokenAmount} disabled={!contract}>
+            <button
+                type="button"
+                className="fill"
+                onClick={setTransferTokenAmount}
+                disabled={!contract}
+            >
                 Transfer
             </button>
             <br />
