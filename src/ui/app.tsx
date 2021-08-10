@@ -13,6 +13,11 @@ import { AddressTranslator } from 'nervos-godwoken-integration';
 import { TTNguyenTokenWrapper } from '../lib/contracts/TTNguyenToken';
 import { CONFIG } from '../config';
 
+const CompiledContractArtifact = require(`../../build/contracts/ERC20.json`);
+const SUDT_ADDRESS = '0xFbbbC57d2a5EbEAD4eAcf81d067b8f0155a6a93B';
+const FORCE_BRIDGE_URL =
+    'https://force-bridge-test.ckbapp.dev/bridge/Ethereum/Nervos?xchain-asset=0x0000000000000000000000000000000000000000';
+
 async function createWeb3() {
     // Modern dapp browsers...
     const { ethereum } = window as any;
@@ -56,6 +61,9 @@ export function App() {
     const [tokenName, setTokenName] = useState<string | undefined>();
     const [tokenSymbol, setTokenSymbol] = useState<string | undefined>();
     const [totalSupplyToken, setTotalSupplyToken] = useState<string | undefined>();
+
+    const [l2Address, setL2Address] = useState<string | undefined>();
+    const [sudtBalance, setSudtBalance] = useState<number | 0>();
 
     useEffect(() => {
         if (accounts?.[0]) {
@@ -151,6 +159,26 @@ export function App() {
         }
     }
 
+    // Get L2 Address for Force Bridge
+    async function getL2Address(_web3: Web3, _account: string) {
+        console.log(`getL2Address: \n${_web3}`);
+        const addressTranslator = new AddressTranslator();
+        const depositAddress = await addressTranslator.getLayer2DepositAddress(_web3, _account);
+
+        console.log(`Layer 2 Deposit Address on Layer 1: \n${depositAddress.addressString}`);
+        return depositAddress.addressString;
+    }
+
+    async function getSUDTBalance(_web3: Web3, _account: string, _polyjuiceAddress: string) {
+        console.log(`PolyjuiceAddress: \n${_polyjuiceAddress}`);
+
+        const _contract = new _web3.eth.Contract(CompiledContractArtifact.abi, SUDT_ADDRESS);
+        const balance = await _contract.methods.balanceOf(_polyjuiceAddress).call({
+            from: account
+        });
+        return balance;
+    }
+
     useEffect(() => {
         if (web3) {
             return;
@@ -167,11 +195,30 @@ export function App() {
             if (_accounts && _accounts[0]) {
                 const _l2Balance = BigInt(await _web3.eth.getBalance(_accounts[0]));
                 setL2Balance(_l2Balance);
+
+                const _l2Address = await getL2Address(_web3, _accounts[0]);
+                setL2Address(_l2Address);
+
+                const addressTranslator = new AddressTranslator();
+                const _polyjuiceAddress = addressTranslator.ethAddressToGodwokenShortAddress(
+                    _accounts[0]
+                );
+
+                console.log(`Polyjuice Address: ${_polyjuiceAddress}\n`);
+                console.log(
+                    `Checking SUDT balance using proxy contract with address: ${SUDT_ADDRESS}...`
+                );
+                const _balance = await getSUDTBalance(_web3, _accounts[0], _polyjuiceAddress);
+                setSudtBalance(_balance);
             }
         })();
     });
 
     const LoadingIndicator = () => <span className="rotating-icon">??</span>;
+
+    const redirect2Bridge = () => {
+        window.location.href = FORCE_BRIDGE_URL;
+    };
 
     return (
         <div>
@@ -187,6 +234,18 @@ export function App() {
             <br />
             Deployed contract address: <b>{contract?.address || '-'}</b> <br />
             Deploy transaction hash: <b>{deployTxHash || '-'}</b>
+            {l2Address && (
+                <div>
+                    <h4>L2 deposit address on L1</h4>
+                    <span className="multiline">{l2Address}</span>
+                </div>
+            )}
+            <br />
+            {sudtBalance && (
+                <div className="show-addr mb-2">
+                    SUDT Balance: <b>{sudtBalance}</b>
+                </div>
+            )}
             <br />
             <hr />
             <p>The button below will deploy a ERC20 token.</p>
@@ -256,7 +315,14 @@ export function App() {
             >
                 Transfer
             </button>
-            <br />
+            <div className="container">
+                <button
+                    className="myButton"
+                    data-label="Go To Force Bridge"
+                    onClick={redirect2Bridge}
+                    disabled={!l2Address}
+                ></button>
+            </div>
             <br />
             <hr />
             The contract is deployed on Nervos Layer 2 - Godwoken + Polyjuice. After each

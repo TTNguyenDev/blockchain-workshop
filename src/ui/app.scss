@@ -2,6 +2,12 @@ body {
     padding: 20px;
 }
 
+.multiline {
+    width: 100%;
+    word-wrap: break-word;
+    display: inline-block;
+}
+
 .rotating-icon {
     display: inline-block;
     animation: spin 1s infinite linear;
@@ -53,3 +59,65 @@ button {
     }
 }
 
+
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond&display=swap');
+
+$colorTheme: #F5EFE1;
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  background: $colorTheme;
+  margin: 0;
+}
+
+.container {
+  display: grid;
+  place-items: center;
+}
+
+.btn {
+  border: 1px solid darken($colorTheme, 15%);
+  border-radius: 8px;
+  cursor: pointer;
+  min-width: 200px;
+  min-height: 60px;
+}
+
+.myButton {
+  @extend .btn;
+  background: darken($colorTheme, 5%);
+  color: darken($colorTheme, 60%);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px;
+  letter-spacing: 0.5px;
+  position: relative;
+  transform: skewX(20deg);
+  
+  
+  &::before {
+    @extend .btn;
+    content: attr(data-label);
+    background: $colorTheme;
+    display: grid;
+    place-items: center;
+    position: absolute;
+    top: -10px; left: 10px;
+    z-index: -1;
+    transition: all 0.5s ease;
+  }
+  
+  &:hover {
+      &::before {
+      top: -1px; left: -1px;
+    }
+  }
+  
+  &:focus {
+    outline: none;
+  }
+}
